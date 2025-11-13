@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { Transport } from './entities/transport.entity';
-import { CreateTransportDTO } from './dto/create-transport.dto';
-import { UpdateTransportDTO } from './dto/update-transport.dto';
+import { CreateTransportDTO } from 'src/dto/create-transport.dto';
+import { UpdateTransportDTO } from 'src/dto/update-transport.dto';
+import { Transport } from 'src/entities/transport.entity';
+
 
 @Injectable()
 export class TransportService {
