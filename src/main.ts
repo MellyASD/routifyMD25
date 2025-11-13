@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { LoggingInterceptor } from './modules/logs/interceptors/logging-console.interceptor';
 import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { LoggingDbInterceptor } from './modules/logs/interceptors/logging-db.interceptor';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +31,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(
     new ClassSerializerInterceptor(app.get(Reflector)),
     new LoggingInterceptor(),
+    app.get(LoggingDbInterceptor),
   );
 
   // Global exception filter

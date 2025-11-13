@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TransportModule } from './modules/transport/transport.module';
+import { LogsModule } from './modules/logs/logs.module';
+import { LoggingDbInterceptor } from './modules/logs/interceptors/logging-db.interceptor';
 
 @Module({
   imports: [
@@ -27,8 +29,9 @@ import { TransportModule } from './modules/transport/transport.module';
     UsersModule,
     AuthModule,
     TransportModule,
+    LogsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, LoggingDbInterceptor],
 })
 export class AppModule {}
