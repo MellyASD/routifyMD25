@@ -3,8 +3,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersModule } from 'src/modules/users/users.module';
 import { AuthModule } from 'src/modules/auth/auth.module';
+import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ isGlobal: true }),

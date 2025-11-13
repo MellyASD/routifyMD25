@@ -1,5 +1,5 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
+import { NestFactory, Reflector } from '@nestjs/core';
+import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
@@ -9,7 +9,7 @@ async function bootstrap() {
 
   // Swagger config
   const config = new DocumentBuilder()
-    .setTitle('Mi API')
+    .setTitle('Api Routify')
     .setDescription('Documentación de la API')
     .setVersion('1.0')
     .build();
@@ -17,13 +17,17 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
 
-  // Validaciones globales
+  // Global validations
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
       transform: true,
     }),
   );
+
+  // Global interceptor to hide fields with @Exclude()
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
+
 
   const port = process.env.PORT || 3000;
   await app.listen(port);

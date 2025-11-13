@@ -1,0 +1,66 @@
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { User, UserRole } from 'src/entities/user.entity';
+import { ILike, Repository } from 'typeorm';
+import { CreateUserDTO } from 'src/dto/create-user.dto';
+import { UpdateUserDTO } from 'src/dto/update-user.dto';
+import * as bcrypt from 'bcrypt';
+
+@Injectable()
+export class UsersService {
+    constructor(
+        @InjectRepository(User)
+        private usersRepo: Repository<User>,
+    ) {}
+    findAll(): Promise<User[]> {
+    return this.usersRepo.find({where: {status: true}});
+  }
+  async findOne(id: number) {
+    const userFind = await this.usersRepo.findOne({ where: { id }, withDeleted: true });
+    if (!userFind) throw new NotFoundException(`User with id ${id} not found`);
+    return userFind; 
+  }
+
+  async findByName(name: string): Promise<User[]> {
+    const users = await this.usersRepo.find({
+      where: { name: ILike(`%${name}%`)},
+    })
+    if (users.length === 0) {
+    throw new NotFoundException(`No users found with name: ${name}`);
+  }
+
+  return users;
+  }
+  async create(newUser: CreateUserDTO) {
+    const hashedPassword = await bcrypt.hash(newUser.password, 10);
+    const userCreated = this.usersRepo.create({
+      ...newUser, password: hashedPassword,
+    });
+    await this.usersRepo.save(userCreated);
+    return{userCreated}
+  }
+  
+  async update(id: number, updatedUser: UpdateUserDTO) {
+  const dataToUpdate = { ...updatedUser };
+  let finalData;
+  
+  if (updatedUser.password) {
+    const hashedPassword = await bcrypt.hash(updatedUser.password, 10);
+    finalData = { ...dataToUpdate, password: hashedPassword };
+  } else { finalData = { ...dataToUpdate }; }
+  if (updatedUser.role) {
+    finalData.role = UserRole[updatedUser.role.toUpperCase()]; 
+  }
+
+  await this.usersRepo.update(id, finalData);
+  return this.usersRepo.findOne({ where: { id } });
+}
+  async disable(id: number): Promise<{ message: string }> {
+    const userRemoved = await this.usersRepo.findOne({ where: { id } });
+    if (!userRemoved)
+      throw new NotFoundException(`User with id ${id} not found`);
+    userRemoved.status = false;
+    await this.usersRepo.save(userRemoved);
+    return { message: `User with id ${id} disable successfully` }
+  }
+}
