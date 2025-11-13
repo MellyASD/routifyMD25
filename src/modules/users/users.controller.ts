@@ -3,9 +3,9 @@ import { UsersService } from './users.service';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { UpdateUserDTO } from 'src/dto/update-user.dto';
-import { RolesGuard } from 'src/auth/roles.guard';
-import { JwtAuthGuard } from 'src/auth/jwt.guard';
-import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/modules/auth/roles.guard';
+import { JwtAuthGuard } from 'src/modules/auth/jwt.guard';
+import { Roles } from 'src/modules/auth/roles.decorator';
 
 @Controller('users')
 export class UsersController {
