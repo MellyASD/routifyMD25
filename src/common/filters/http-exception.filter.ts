@@ -5,41 +5,41 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-
+import { Request, Response } from 'express';
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse();
-    const request = ctx.getRequest();
+    const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest<Request>();
 
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const responseBody =
+    const rawResponse: string | Record<string, unknown> =
       exception instanceof HttpException
-        ? exception.getResponse()
-        : { message: String(exception) };
+        ? (exception.getResponse() as string | Record<string, unknown>)
+        : 'INTERNAL SERVER ERROR';
 
-    const message =
-      typeof responseBody === 'object'
-        ? (responseBody as any).message || 'Unespected error'
-        : responseBody;
+    const errorResponse =
+      typeof rawResponse === 'object' && 'message' in rawResponse
+        ? (rawResponse.message as string | string[])
+        : rawResponse;
 
-    const error =
-      typeof responseBody === 'object' && (responseBody as any).error
-        ? (responseBody as any).error
-        : 'InternalError';
-
-    response.status(status).json({
+    const errorPayload = {
       success: false,
       statusCode: status,
+      message: errorResponse,
       path: request.url,
       timestamp: new Date().toISOString(),
-      error,
-      message,
-    });
+    };
+
+    console.error(
+      `[Error ${status}] ${request.method} ${request.url} -`,
+      errorResponse,
+    );
+    response.status(status).json(errorPayload);
   }
 }

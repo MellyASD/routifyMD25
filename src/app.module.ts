@@ -7,9 +7,9 @@ import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { TransportModule } from './modules/transport/transport.module';
 
-
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }),
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -22,11 +22,11 @@ import { TransportModule } from './modules/transport/transport.module';
         database: config.get<string>('DB_NAME'),
         autoLoadEntities: true,
         synchronize: false,
-      })
+      }),
     }),
     UsersModule,
     AuthModule,
-    TransportModule
+    TransportModule,
   ],
   controllers: [AppController],
   providers: [AppService],
