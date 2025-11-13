@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
-import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';;
+import { JwtModule, JwtModuleOptions } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtStrategy } from './jwt.stretegy';
+import { JwtStrategy } from './jwt.strategy';
 import { User } from 'src/entities/user.entity';
 
 @Module({
@@ -19,12 +20,12 @@ import { User } from 'src/entities/user.entity';
       useFactory: (config: ConfigService): JwtModuleOptions => ({
         secret: config.get<string>('JWT_SECRET_KEY'),
         signOptions: {
-          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '1h') as any
-        }
+          expiresIn: (config.get<string>('JWT_EXPIRES_IN') || '1h') as any,
+        },
       }),
-    })
+    }),
   ],
-  providers: [AuthService, JwtStrategy ],
-  controllers: [AuthController]
+  providers: [AuthService, JwtStrategy],
+  controllers: [AuthController],
 })
-export class AuthModule { }
+export class AuthModule {}

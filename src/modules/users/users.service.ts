@@ -1,4 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from 'src/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
@@ -8,59 +15,96 @@ import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectRepository(User)
-        private usersRepo: Repository<User>,
-    ) {}
-    findAll(): Promise<User[]> {
-    return this.usersRepo.find({where: {status: true}});
+  constructor(
+    @InjectRepository(User)
+    private usersRepo: Repository<User>,
+  ) {}
+
+  findAll(): Promise<User[]> {
+    return this.usersRepo.find({ where: { status: true } });
   }
-  async findOne(id: number) {
-    const userFind = await this.usersRepo.findOne({ where: { id }, withDeleted: true });
-    if (!userFind) throw new NotFoundException(`User with id ${id} not found`);
-    return userFind; 
+
+  async findOne(id: number): Promise<User> {
+    const user = await this.usersRepo.findOne({ where: { id } });
+    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
+    return user;
   }
 
   async findByName(name: string): Promise<User[]> {
     const users = await this.usersRepo.find({
-      where: { name: ILike(`%${name}%`)},
-    })
-    if (users.length === 0) {
-    throw new NotFoundException(`No users found with name: ${name}`);
-  }
-
-  return users;
-  }
-  async create(newUser: CreateUserDTO) {
-    const hashedPassword = await bcrypt.hash(newUser.password, 10);
-    const userCreated = this.usersRepo.create({
-      ...newUser, password: hashedPassword,
+      where: { name: ILike(`%${name}%`) },
     });
-    await this.usersRepo.save(userCreated);
-    return{userCreated}
-  }
-  
-  async update(id: number, updatedUser: UpdateUserDTO) {
-  const dataToUpdate = { ...updatedUser };
-  let finalData;
-  
-  if (updatedUser.password) {
-    const hashedPassword = await bcrypt.hash(updatedUser.password, 10);
-    finalData = { ...dataToUpdate, password: hashedPassword };
-  } else { finalData = { ...dataToUpdate }; }
-  if (updatedUser.role) {
-    finalData.role = UserRole[updatedUser.role.toUpperCase()]; 
+    if (users.length === 0) {
+      throw new NotFoundException(`No users found with name: ${name}`);
+    }
+
+    return users;
   }
 
-  await this.usersRepo.update(id, finalData);
-  return this.usersRepo.findOne({ where: { id } });
-}
+  async create(
+    newUser: CreateUserDTO,
+  ): Promise<{ message: string; user: User }> {
+    const existingUser = await this.usersRepo.findOne({
+      where: { email: newUser.email },
+    });
+    if (existingUser) {
+      throw new BadRequestException('Email already exists.');
+    }
+
+    const hashedPassword = await bcrypt.hash(newUser.password, 10);
+    const user = this.usersRepo.create({
+      ...newUser,
+      password: hashedPassword,
+    });
+
+    const savedUser = await this.usersRepo.save(user);
+    return { message: 'User created successfully.', user: savedUser };
+  }
+
+  async update(
+    id: number,
+    updateUser: UpdateUserDTO,
+  ): Promise<{ message: string; user: User }> {
+    const user = await this.findOne(id);
+    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
+
+    if (updateUser.email && updateUser.email !== user.email) {
+      const existingUser = await this.usersRepo.findOne({
+        where: { email: updateUser.email },
+      });
+
+      if (existingUser && existingUser.id !== id) {
+        throw new BadRequestException(
+          'Email is already in use by another user.',
+        );
+      }
+    }
+
+    if (updateUser.password) {
+      updateUser.password = await bcrypt.hash(updateUser.password, 10);
+    }
+
+    if (updateUser.role && typeof updateUser.role === 'string') {
+      const roleKey = updateUser.role.toUpperCase() as keyof typeof UserRole;
+      updateUser.role = UserRole[roleKey];
+    }
+
+    Object.assign(user, updateUser);
+    const updatedUser = await this.usersRepo.save(user);
+
+    return { message: 'User updated successfully.', user: updatedUser };
+  }
+
   async disable(id: number): Promise<{ message: string }> {
-    const userRemoved = await this.usersRepo.findOne({ where: { id } });
-    if (!userRemoved)
-      throw new NotFoundException(`User with id ${id} not found`);
-    userRemoved.status = false;
-    await this.usersRepo.save(userRemoved);
-    return { message: `User with id ${id} disable successfully` }
+    const user = await this.findOne(id);
+    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
+
+    if (!user.status) {
+      throw new BadRequestException('User is already disabled.');
+    }
+
+    user.status = false;
+    await this.usersRepo.save(user);
+    return { message: `User with ID ${id} disabled successfully.` };
   }
 }
