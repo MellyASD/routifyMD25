@@ -1,8 +1,11 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, UseGuards } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { UpdateUserDTO } from 'src/dto/update-user.dto';
+import { RolesGuard } from 'src/auth/roles.guard';
+import { JwtAuthGuard } from 'src/auth/jwt.guard';
+import { Roles } from 'src/auth/roles.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -23,16 +26,22 @@ export class UsersController {
     return this.usersService.findByName(name);
   }
 
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Post()
   create(@Body() body: CreateUserDTO) {
     return this.usersService.create(body);
   }
-
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Put(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateUserDTO) {
     return this.usersService.update(Number(id), body);
   }
-
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Patch(':id/disable')
   disable(@Param('id', ParseIntPipe) id: number): Promise<{ message: string }> {
     return this.usersService.disable(id);
