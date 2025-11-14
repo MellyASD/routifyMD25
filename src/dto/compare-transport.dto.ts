@@ -1,7 +1,7 @@
 import { IsNotEmpty, IsString } from "class-validator";
 
 
-export class CompareTransportDto {
+export class CompareTransportDTO {
   @IsString()
   @IsNotEmpty()
   origin: string;

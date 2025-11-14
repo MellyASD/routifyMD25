@@ -1,70 +1,53 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
-import { CreateTransportDTO } from 'src/dto/create-transport.dto';
-import { UpdateTransportDTO } from 'src/dto/update-transport.dto';
+import { Repository } from 'typeorm';
 import { Transport } from 'src/entities/transport.entity';
+import { CreateTransportDTO} from 'src/dto/create-transport.dto';
+import { ComparisonResult } from 'src/interfaces/transport-comparison.interface';
 
 @Injectable()
 export class TransportService {
   constructor(
     @InjectRepository(Transport)
-    private readonly transportRepo: Repository<Transport>,
+    private transportRepository: Repository<Transport>,
+    private simulatorService: TransportSimulatorService,
   ) {}
 
-  // Create transport
-  async create(dto: CreateTransportDTO) {
-    const exists = await this.transportRepo.findOne({
-      where: { type: ILike(dto.type) },
-    });
-
-    if (exists) {
-      throw new BadRequestException('Transport type already exists.');
-    }
-
-    const newTransport = this.transportRepo.create(dto);
-    const saved = await this.transportRepo.save(newTransport);
-
-    return { message: 'Transport created successfully.', transport: saved };
+  async create(createTransportDto: CreateTransportDTO): Promise<Transport> {
+    const transport = this.transportRepository.create(createTransportDto);
+    return await this.transportRepository.save(transport);
   }
 
-  // Get all transports
-  findAll() {
-    return this.transportRepo.find();
+  async findAll(): Promise<Transport[]> {
+    return await this.transportRepository.find();
   }
 
-  // Get one transport
-  async findOne(id: number) {
-    const transport = await this.transportRepo.findOne({ where: { id } });
-
-    if (!transport) {
-      throw new NotFoundException('Transport not found.');
-    }
-
-    return transport;
+  async findOne(id: string): Promise<Transport | null> {
+    return await this.transportRepository.findOne({ where: { id } });
   }
 
-  // Update
-  async update(id: number, dto: UpdateTransportDTO) {
-    const transport = await this.findOne(id);
+  async compareTransports(origin: string, destination: string): Promise<ComparisonResult> {
+    const options = this.simulatorService.simulateTransportOptions(origin, destination);
 
-    Object.assign(transport, dto);
+    const recommended = options.reduce((prev, current) =>
+      prev.score > current.score ? prev : current
+    );
 
-    const updated = await this.transportRepo.save(transport);
+    const fastest = options.reduce((prev, current) =>
+      prev.duration < current.duration ? prev : current
+    );
 
-    return { message: 'Transport updated successfully.', transport: updated };
-  }
+    const cheapest = options.reduce((prev, current) =>
+      prev.cost < current.cost ? prev : current
+    );
 
-  // Delete
-  async remove(id: number) {
-    const transport = await this.findOne(id);
-
-    await this.transportRepo.remove(transport);
-
-    return { message: 'Transport deleted successfully.' };
+    return {
+      origin,
+      destination,
+      options: options.sort((a, b) => b.score - a.score),
+      recommended,
+      fastest,
+      cheapest,
+    };
   }
 }

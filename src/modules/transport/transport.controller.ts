@@ -1,55 +1,36 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Param,
-  Post,
-  Patch,
-  Delete,
-  ParseIntPipe,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { TransportService } from './transport.service';
 import { CreateTransportDTO } from 'src/dto/create-transport.dto';
-import { UpdateTransportDTO } from 'src/dto/update-transport.dto';
-import { Roles } from 'src/modules/auth/roles.decorator';
 import { UserRole } from 'src/entities/user.entity';
-
+import { Roles } from '../auth/roles.decorator';
+import { RolesGuard } from '../auth/roles.guard';
+import { CompareTransportDTO } from 'src/dto/compare-transport.dto';
 @Controller('transport')
 export class TransportController {
   constructor(private readonly transportService: TransportService) {}
 
-  //  Create a new transport
   @Post()
-  create(@Body() dto: CreateTransportDTO) {
-    return this.transportService.create(dto);
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.TRUCKER)
+  create(@Body() createTransportDto: CreateTransportDTO) {
+    return this.transportService.create(createTransportDto);
   }
 
-  //  Get all transports
   @Get()
   findAll() {
     return this.transportService.findAll();
   }
 
-  //  Get one transport by ID
   @Get(':id')
-  findOne(@Param('id', ParseIntPipe) id: number) {
+  findOne(@Param('id') id: string) {
     return this.transportService.findOne(id);
   }
 
-  //  Update transport
-  @Patch(':id')
-  @Roles(UserRole.ADMIN)
-  update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() dto: UpdateTransportDTO,
-  ) {
-    return this.transportService.update(id, dto);
-  }
-
-  // Delete transport
-  @Delete(':id')
-  @Roles(UserRole.ADMIN)
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.transportService.remove(id);
+  @Post('compare')
+  compare(@Body() compareDto: CompareTransportDTO) {
+    return this.transportService.compareTransports(
+      compareDto.origin,
+      compareDto.destination,
+    );
   }
 }
