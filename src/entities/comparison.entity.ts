@@ -4,8 +4,8 @@ import { User } from "./user.entity";
 
 @Entity('comparisons')
 export class Comparison {
-  @PrimaryGeneratedColumn('uuid')
-  id: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
   @Column()
   userId: string;
