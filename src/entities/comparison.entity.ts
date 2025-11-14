@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "./user.entity";
+import { Transport } from "./transport.entity";
 
 
 @Entity('comparisons')
@@ -25,4 +26,8 @@ export class Comparison {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Transport, transport => transport.comparison)
+transports: Transport[];
+
 }
