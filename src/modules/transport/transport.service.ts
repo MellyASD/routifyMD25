@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Transport } from 'src/entities/transport.entity';
 import { CreateTransportDTO} from 'src/dto/create-transport.dto';
 import { ComparisonResult } from 'src/interfaces/transport-comparison.interface';
+import { TransportSimulatorService } from '../services/transport-simulator.service';
 
 @Injectable()
 export class TransportService {
