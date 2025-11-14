@@ -1,55 +1,70 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { ILike, Repository } from 'typeorm';
 import { CreateTransportDTO } from 'src/dto/create-transport.dto';
 import { UpdateTransportDTO } from 'src/dto/update-transport.dto';
 import { Transport } from 'src/entities/transport.entity';
 
-
 @Injectable()
 export class TransportService {
-  private transports: Transport[] = []; // Empty list (no fixed transports)
-  private idCounter = 1;
+  constructor(
+    @InjectRepository(Transport)
+    private readonly transportRepo: Repository<Transport>,
+  ) {}
 
-  //  Create transport
-  create(dto: CreateTransportDTO) {
-    const exists = this.transports.find(t => t.type.toLowerCase() === dto.type.toLowerCase());
-    if (exists) throw new BadRequestException('Transport type already exists.');
+  // Create transport
+  async create(dto: CreateTransportDTO) {
+    const exists = await this.transportRepo.findOne({
+      where: { type: ILike(dto.type) },
+    });
 
-    const newTransport: Transport = {
-      id: this.idCounter++,
-      ...dto,
-    };
+    if (exists) {
+      throw new BadRequestException('Transport type already exists.');
+    }
 
-    this.transports.push(newTransport);
-    return { message: 'Transport created successfully', newTransport };
+    const newTransport = this.transportRepo.create(dto);
+    const saved = await this.transportRepo.save(newTransport);
+
+    return { message: 'Transport created successfully.', transport: saved };
   }
 
   // Get all transports
   findAll() {
-    return this.transports;
+    return this.transportRepo.find();
   }
 
-  //  Get transport by ID
-  findOne(id: number) {
-    const transport = this.transports.find(t => t.id === id);
-    if (!transport) throw new NotFoundException('Transport not found.');
+  // Get one transport
+  async findOne(id: number) {
+    const transport = await this.transportRepo.findOne({ where: { id } });
+
+    if (!transport) {
+      throw new NotFoundException('Transport not found.');
+    }
+
     return transport;
   }
 
-  //  Update transport
-  update(id: number, dto: UpdateTransportDTO) {
-    const transport = this.transports.find(t => t.id === id);
-    if (!transport) throw new NotFoundException('Transport not found.');
+  // Update
+  async update(id: number, dto: UpdateTransportDTO) {
+    const transport = await this.findOne(id);
 
     Object.assign(transport, dto);
-    return { message: 'Transport updated successfully', transport };
+
+    const updated = await this.transportRepo.save(transport);
+
+    return { message: 'Transport updated successfully.', transport: updated };
   }
 
-  //  Delete transport
-  remove(id: number) {
-    const index = this.transports.findIndex(t => t.id === id);
-    if (index === -1) throw new NotFoundException('Transport not found.');
+  // Delete
+  async remove(id: number) {
+    const transport = await this.findOne(id);
 
-    const deleted = this.transports.splice(index, 1);
-    return { message: 'Transport deleted successfully', deleted };
+    await this.transportRepo.remove(transport);
+
+    return { message: 'Transport deleted successfully.' };
   }
 }

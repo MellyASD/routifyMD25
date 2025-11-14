@@ -1,7 +1,18 @@
-import { Body, Controller, Get, Param, Post, Patch, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Patch,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { TransportService } from './transport.service';
 import { CreateTransportDTO } from 'src/dto/create-transport.dto';
 import { UpdateTransportDTO } from 'src/dto/update-transport.dto';
+import { Roles } from 'src/modules/auth/roles.decorator';
+import { UserRole } from 'src/entities/user.entity';
 
 @Controller('transport')
 export class TransportController {
@@ -21,19 +32,24 @@ export class TransportController {
 
   //  Get one transport by ID
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.transportService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.transportService.findOne(id);
   }
 
   //  Update transport
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateTransportDTO) {
-    return this.transportService.update(+id, dto);
+  @Roles(UserRole.ADMIN)
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateTransportDTO,
+  ) {
+    return this.transportService.update(id, dto);
   }
 
   // Delete transport
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.transportService.remove(+id);
+  @Roles(UserRole.ADMIN)
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.transportService.remove(id);
   }
 }
