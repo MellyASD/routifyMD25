@@ -51,7 +51,7 @@ describe('AuthModule (e2e)', () => {
       canActivate: (context) => {
         const req = context.switchToHttp().getRequest();
         req.user = {
-          id: 'abc123',
+          id: 'abce123',
           email: 'test@example.com',
           name: 'Test',
           role: 'user',

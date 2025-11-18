@@ -2,7 +2,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { ConfigService } from '@nestjs/config';
 
 describe('JwtStrategy', () => {
-  it('should be defined', () => {
+  it('Should be defined', () => {
     const mockConfig = {
       get: (key: string) => {
         if (key === 'JWT_SECRET_KEY') return 'test-secret';
