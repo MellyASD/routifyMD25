@@ -12,8 +12,8 @@ export enum TransportType {
 
 @Entity('transports')
 export class Transport {
-  @PrimaryGeneratedColumn('uuid')
-  id: string; // Unique identifier for each transport record
+  @PrimaryGeneratedColumn()
+  id: number; // Unique identifier for each transport record
 
   @Column({
     type: 'enum',
