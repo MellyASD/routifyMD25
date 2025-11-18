@@ -11,11 +11,11 @@ export class TransportSimulatorService {
     // Bus
     options.push({
       type: TransportType.BUS,
-      distance: baseDistance,
-      duration: Math.round(baseDistance * 4 + Math.random() * 10),
-      cost: 2800 + Math.random() * 500,
-      comfort: 5 + Math.random() * 2,
-      reliability: 6 + Math.random() * 2,
+      distance: parseFloat(baseDistance.toFixed(2)),
+      duration: parseFloat((Math.round(baseDistance * 4 + Math.random() * 10)).toFixed(2)),
+      cost: 2800 + parseFloat((Math.random() * 500).toFixed(2)),
+      comfort: 5 + parseFloat((Math.random() * 2).toFixed(2)),
+      reliability: 6 + parseFloat((Math.random() * 2).toFixed(2)),
       score: 0,
       notes: 'Public transport service with multiple stops',
     });
@@ -23,11 +23,11 @@ export class TransportSimulatorService {
     // Taxi
     options.push({
       type: TransportType.TAXI,
-      distance: baseDistance,
-      duration: Math.round(baseDistance * 2.5 + Math.random() * 5),
+      distance: parseFloat(baseDistance.toFixed(2)),
+      duration: parseFloat(Math.round(baseDistance * 2.5 + Math.random() * 5).toFixed(2)),
       cost: 6000 + baseDistance * 2500,
-      comfort: 7 + Math.random() * 2,
-      reliability: 8 + Math.random() * 1.5,
+      comfort: 7 + parseFloat((Math.random() * 2).toFixed(2)),
+      reliability: 8 + parseFloat((Math.random() * 1.5).toFixed(2)),
       score: 0,
       notes: ' Door-to-door service',
     });
@@ -36,11 +36,11 @@ export class TransportSimulatorService {
     if (baseDistance < 15) {
       options.push({
         type: TransportType.METRO,
-        distance: baseDistance * 0.9,
-        duration: Math.round(baseDistance * 2 + Math.random() * 5),
+        distance: parseFloat((baseDistance * 0.9).toFixed(2)),
+        duration: parseFloat(Math.round(baseDistance * 2 + Math.random() * 5).toFixed(2)),
         cost: 2800,
-        comfort: 6 + Math.random() * 2,
-        reliability: 9 + Math.random() * 0.8,
+        comfort: 6 + parseFloat((Math.random() * 2).toFixed(2)),
+        reliability: 9 + parseFloat((Math.random() * 0.8).toFixed(2)),
         score: 0,
         notes: 'Fast and reliable during peak hours',
       });
@@ -50,11 +50,11 @@ export class TransportSimulatorService {
     if (baseDistance < 10) {
       options.push({
         type: TransportType.BICYCLE,
-        distance: baseDistance * 1.1,
-        duration: Math.round(baseDistance * 5 + Math.random() * 10),
+        distance: parseFloat((baseDistance * 1.1).toFixed(2)),
+        duration: parseFloat(Math.round(baseDistance * 5 + Math.random() * 10).toFixed(2)),
         cost: 0,
-        comfort: 4 + Math.random() * 2,
-        reliability: 7 + Math.random() * 2,
+        comfort: 4 + parseFloat((Math.random() * 2).toFixed(2)),
+        reliability: 7 + parseFloat((Math.random() * 2).toFixed(2)),
         score: 0,
         notes: 'Healthy and eco-friendly option',
       });
@@ -64,10 +64,10 @@ export class TransportSimulatorService {
     if (baseDistance < 5) {
       options.push({
         type: TransportType.WALKING,
-        distance: baseDistance * 1.15,
-        duration: Math.round(baseDistance * 15 + Math.random() * 10),
+        distance: parseFloat((baseDistance * 1.15).toFixed(2)),
+        duration: parseFloat(Math.round(baseDistance * 15 + Math.random() * 10).toFixed(2)),
         cost: 0,
-        comfort: 3 + Math.random() * 2,
+        comfort: 3 + parseFloat((Math.random() * 2).toFixed(2)),
         reliability: 10,
         score: 0,
         notes: 'Completely free and healthy option',
@@ -77,11 +77,11 @@ export class TransportSimulatorService {
     // Car
     options.push({
       type: TransportType.PRIVATE_CAR,
-      distance: baseDistance,
-      duration: Math.round(baseDistance * 2 + Math.random() * 8),
-      cost: baseDistance * 1500 + 3000, // combustible + parqueadero
-      comfort: 9 + Math.random() * 0.8,
-      reliability: 8 + Math.random() * 1.5,
+      distance: parseFloat(baseDistance.toFixed(2)),
+      duration: parseFloat(Math.round(baseDistance * 2 + Math.random() * 8).toFixed(2)),
+      cost: baseDistance * 1500 + 3000, // gas + parking
+      comfort: 9 + parseFloat((Math.random() * 0.8).toFixed(2)),
+      reliability: 8 + parseFloat((Math.random() * 1.5).toFixed(2)),
       score: 0,
       notes: 'Includes fuel and parking costs',
     });
