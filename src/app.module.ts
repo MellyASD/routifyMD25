@@ -8,6 +8,7 @@ import { UsersModule } from './modules/users/users.module';
 import { TransportModule } from './modules/transport/transport.module';
 import { LogsModule } from './modules/logs/logs.module';
 import { LoggingDbInterceptor } from './modules/logs/interceptors/logging-db.interceptor';
+import { ComparisonsModule } from './modules/comparisons/comparisons.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { LoggingDbInterceptor } from './modules/logs/interceptors/logging-db.int
     AuthModule,
     TransportModule,
     LogsModule,
+    ComparisonsModule,
   ],
   controllers: [AppController],
   providers: [AppService, LoggingDbInterceptor],
