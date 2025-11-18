@@ -1,11 +1,4 @@
-import {
-  RoutifyException,
-  TransportNotFoundException,
-  RouteNotFoundException,
-  UserNotFoundException,
-  AccessDeniedException,
-  InvalidCredentialsException,
-} from './routify.exception';
+import {RoutifyException, TransportNotFoundException, RouteNotFoundException, UserNotFoundException, AccessDeniedException,InvalidCredentialsException,} from './routify.exception';
 import { HttpStatus } from '@nestjs/common';
 
 describe('Custom Exceptions', () => {
