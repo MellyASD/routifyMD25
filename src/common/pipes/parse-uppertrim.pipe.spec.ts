@@ -24,7 +24,7 @@ describe('ParseUpperTrimPipe', () => {
   });
 
   it('should return value unchanged if not string or number', () => {
-    const input = { name: 'Melissa' };
+    const input = { name: 'Melisa' };
     const result = pipe.transform(input, {} as ArgumentMetadata);
     expect(result).toEqual(input);
   });
