@@ -89,7 +89,7 @@ describe('AllExceptionsFilter', () => {
     );
   });
 
-  it('should handle unknown exception with INTERNAL_SERVER_ERROR', () => {
+  it('Should handle unknown exception with INTERNAL_SERVER_ERROR', () => {
     const exception = new Error('Unknown error');
 
     const mockHost = createMockHost();
