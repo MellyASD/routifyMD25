@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transport } from 'src/entities/transport.entity';
-import { CreateTransportDTO} from 'src/dto/create-transport.dto';
+import { CreateRouteDTO} from 'src/dto/create-route.dto';
 import { ComparisonResult } from 'src/interfaces/transport-comparison.interface';
 import { TransportSimulatorService } from '../services/transport-simulator.service';
+import { ComparisonsService } from '../comparisons/comparisons.service';
 
 @Injectable()
 export class TransportService {
@@ -12,10 +13,11 @@ export class TransportService {
     @InjectRepository(Transport)
     private transportRepository: Repository<Transport>,
     private simulatorService: TransportSimulatorService,
+    private comparisonsService: ComparisonsService,
   ) {}
 
-  async create(createTransportDto: CreateTransportDTO): Promise<Transport> {
-    const transport = this.transportRepository.create(createTransportDto);
+  async create(CreateRouteDTO: CreateRouteDTO): Promise<Transport> {
+    const transport = this.transportRepository.create(CreateRouteDTO);
     return await this.transportRepository.save(transport);
   }
 
@@ -23,11 +25,15 @@ export class TransportService {
     return await this.transportRepository.find();
   }
 
-  async findOne(id: string): Promise<Transport | null> {
-    return await this.transportRepository.findOne({ where: { id } });
+  async findOne(id: number): Promise<Transport> {
+    const transport = await this.transportRepository.findOne({ where: { id } });
+    if (!transport) {
+      throw new NotFoundException(`Transport with Id ${id} not found`);
+    }
+    return transport;
   }
 
-  async compareTransports(origin: string, destination: string): Promise<ComparisonResult> {
+  async compareTransports(origin: string, destination: string, userId?: string ): Promise<ComparisonResult> {
     const options = this.simulatorService.simulateTransportOptions(origin, destination);
 
     const recommended = options.reduce((prev, current) =>
@@ -42,7 +48,7 @@ export class TransportService {
       prev.cost < current.cost ? prev : current
     );
 
-    return {
+   const result = {
       origin,
       destination,
       options: options.sort((a, b) => b.score - a.score),
@@ -50,5 +56,17 @@ export class TransportService {
       fastest,
       cheapest,
     };
+
+    if (userId) {
+      await this.comparisonsService.create(
+        {
+          origin,
+          destination,
+        },
+        Number(userId),
+      );
+    }
+
+    return result;
   }
 }
