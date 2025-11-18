@@ -1,6 +1,7 @@
 import { IsEnum, IsString, IsNotEmpty, IsNumber, Min, IsOptional } from 'class-validator';
 import { TransportType } from '../entities/transport.entity';
-export class CreateTransportDTO {
+
+export class CreateRouteDTO {
   @IsEnum(TransportType)
   type: TransportType;
 
