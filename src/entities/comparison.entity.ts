@@ -28,6 +28,6 @@ export class Comparison {
   createdAt: Date;
 
   @OneToMany(() => Transport, transport => transport.comparison)
-transports: Transport[];
+  transports: Transport[];
 
 }
