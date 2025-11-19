@@ -1,14 +1,21 @@
-import { forwardRef, Inject, Injectable, InternalServerErrorException, NotFoundException, UnauthorizedException } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  forwardRef,
+  Inject,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { CreateComparisonDTO } from 'src/dto/create-comparison.dto';
 import { Comparison } from 'src/entities/comparison.entity';
 import { Repository } from 'typeorm';
 import { TransportService } from '../transport/transport.service';
 import { User } from 'src/entities/user.entity';
-import { CreateComparisonDTO } from 'src/dto/create-comparison.dto';
 
 @Injectable()
 export class ComparisonsService {
-    constructor(
+  constructor(
     @InjectRepository(Comparison)
     private comparisonRepository: Repository<Comparison>,
     @Inject(forwardRef(() => TransportService))
@@ -17,20 +24,23 @@ export class ComparisonsService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(createComparisonDto: CreateComparisonDTO, userId: number): Promise<Comparison> {
-    
+  async create(
+    createComparisonDto: CreateComparisonDTO,
+    userId: number,
+  ): Promise<Comparison> {
+    // Valida que el usuario realmente existe
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
     }
 
-    // Simulates the transport comparison results
+    // Simula el resultado y lo guarda en 'results'
     const transportResults = await this.transportService.compareTransports(
       createComparisonDto.origin,
       createComparisonDto.destination,
     );
 
-    // Creates the object and persists it
+    // Crea el objeto y lo persiste
     const comparison = this.comparisonRepository.create({
       origin: createComparisonDto.origin,
       destination: createComparisonDto.destination,
@@ -41,7 +51,9 @@ export class ComparisonsService {
     try {
       return await this.comparisonRepository.save(comparison);
     } catch (err) {
-      throw new InternalServerErrorException(`Error creating comparison: ${err.message}`);
+      throw new InternalServerErrorException(
+        `Error creando comparación: ${err.message}`,
+      );
     }
   }
 
@@ -53,6 +65,13 @@ export class ComparisonsService {
   }
 
   async findByUser(userId: number): Promise<Comparison[]> {
+    const userExists = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+
+    if (!userExists) {
+      throw new NotFoundException(`User with ID ${userId} does not exist`);
+    }
     return await this.comparisonRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
@@ -93,20 +112,4 @@ export class ComparisonsService {
       recentComparisons,
     };
   }
-  async update(id: number, updateDto: Partial<CreateComparisonDTO>, userId: number) {
-  const comparison = await this.comparisonRepository.findOne({ where: { id }, relations: ['user'] });
-  if (!comparison) {
-    throw new NotFoundException(`Comparison with ID ${id} not found`);
-  }
-  if (comparison.user.id !== userId) {
-    throw new UnauthorizedException('You cannot modify this comparison');
-  }
-  Object.assign(comparison, updateDto);
-  try {
-    return await this.comparisonRepository.save(comparison);
-  } catch (err) {
-    throw new InternalServerErrorException(`Error updating comparison: ${err.message}`);
-  }
-}
-
 }
