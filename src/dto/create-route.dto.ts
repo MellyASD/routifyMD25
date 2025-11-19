@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { TransportType } from '../entities/transport.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsAddressOrCity } from 'src/common/validators/is-address-or-city.validator';
 export class CreateRouteDTO {
   @ApiProperty({
     example: 'private_car',
@@ -23,6 +24,10 @@ export class CreateRouteDTO {
   })
   @IsString()
   @IsNotEmpty()
+  @IsAddressOrCity({
+    message:
+      'Origin must be a valid address or city Example "Bogota DC o Cra 24 #45"',
+  })
   origin: string;
 
   @ApiProperty({
@@ -31,6 +36,10 @@ export class CreateRouteDTO {
   })
   @IsString()
   @IsNotEmpty()
+  @IsAddressOrCity({
+    message:
+      'Destination must be a valid address or city Example "Bogota DC o Cra 24 #45"',
+  })
   destination: string;
 
   @ApiProperty({
