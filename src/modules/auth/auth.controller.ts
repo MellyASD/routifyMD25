@@ -1,29 +1,79 @@
-import { Body, Controller, Post, Get, Request, UseGuards } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  Body,
+  Controller,
+  Post,
+  Get,
+  Request,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDTO } from 'src/dto/login.dto';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { JwtAuthGuard } from './jwt.guard';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@Controller('auth')
+@ApiTags('Auth')
+@Controller('/api/auth')
 export class AuthController {
-    constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-   
-    @Post('register')
-    register(@Body() data: CreateUserDTO) {
-        return this.authService.register(data);
-    }
+  @Post('register')
+  @ApiOperation({ summary: 'Register a new user' })
+  @ApiResponse({
+    status: 201,
+    description: 'User registered successfully',
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Bad Request',
+  })
+  @ApiBody({
+    description: 'User registration data',
+    type: CreateUserDTO,
+    examples: {
+      default: {
+        summary: 'Register example',
+        value: {
+          name: 'example',
+          email: 'example@example.com',
+          password: '1234567',
+          role: 'admin',
+        },
+      },
+    },
+  })
+  register(@Body() data: CreateUserDTO) {
+    return this.authService.register(data);
+  }
 
-    
-    @Post('login')
-    login(@Body() data: LoginDTO) {
-        return this.authService.login(data);
-    }
+  @Post('login')
+  @ApiOperation({ summary: 'User login' })
+  @ApiResponse({
+    status: 201,
+    description: 'User logged in successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  login(@Body() data: LoginDTO) {
+    return this.authService.login(data);
+  }
 
-   
-    @UseGuards(JwtAuthGuard)
-    @Get('profile')
-    getProfile(@Request() req) {
-        return req.user;
-    }
+  @UseGuards(JwtAuthGuard)
+  @Get('profile')
+  @ApiOperation({ summary: 'Get user profile' })
+  @ApiResponse({
+    status: 200,
+    description: 'User profile retrieved successfully',
+  })
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized',
+  })
+  getProfile(@Request() req) {
+    return req.user;
+  }
 }
