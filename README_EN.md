@@ -107,7 +107,7 @@ GET    /comparisons/history   → Retrieve history of previous comparisons
 
 # Logs register
 
-![Routify Logo](src/assets/image.png)
+![Logs in DB](src/assets/image.png)
 
 
 # Testing:

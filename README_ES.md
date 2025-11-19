@@ -102,7 +102,7 @@ GET    /comparisons/history   → Obtener historial de comparaciones previas
 
 Registro de logs 
 
-![Routify Logo](src/assets/image.png)
+![Logs en base de datos](src/assets/image.png)
 
 Pruebas
 npm run test
