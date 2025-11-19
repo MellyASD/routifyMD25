@@ -12,13 +12,22 @@ import { AuthService } from './auth.service';
 import { LoginDTO } from 'src/dto/login.dto';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { JwtAuthGuard } from './jwt.guard';
-import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @ApiTags('Auth')
+@ApiBearerAuth()
 @Controller('/api/auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // POST /api/auth/register
+  // Register a new user account
   @Post('register')
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({
@@ -48,6 +57,8 @@ export class AuthController {
     return this.authService.register(data);
   }
 
+  // POST /api/auth/login
+  // Authenticate a user and return TOKEN
   @Post('login')
   @ApiOperation({ summary: 'User login' })
   @ApiResponse({
@@ -62,6 +73,8 @@ export class AuthController {
     return this.authService.login(data);
   }
 
+  // GET /api/auth/profile
+  // Displays the authenticated user profile
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   @ApiOperation({ summary: 'Get user profile' })

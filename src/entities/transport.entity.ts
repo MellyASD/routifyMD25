@@ -1,5 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, JoinColumn, ManyToOne } from 'typeorm';
-import { Comparison } from './comparison.entity';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  CreateDateColumn,
+} from 'typeorm';
 
 export enum TransportType {
   BUS = 'bus',
@@ -47,9 +51,4 @@ export class Transport {
 
   @CreateDateColumn()
   createdAt: Date; // Timestamp automatically generated when the record is created
-
-  @ManyToOne(() => Comparison, comparison => comparison.transports)
-  @JoinColumn({ name: 'comparisonId' })
-  comparison: Comparison;
-
 }

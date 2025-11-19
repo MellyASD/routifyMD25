@@ -11,12 +11,16 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
   constructor(configService: ConfigService) {
     super({
+      // Extract JWT from the Authorization header as Bearer token
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      // Do not ignore token expiration
       ignoreExpiration: false,
+      // Use secret key from environment configuration
       secretOrKey: configService.get<string>('JWT_SECRET_KEY'),
     });
   }
 
+  // Validate the JWT payload and return user information
   async validate(payload: any) {
     return {
       userId: payload.sub,

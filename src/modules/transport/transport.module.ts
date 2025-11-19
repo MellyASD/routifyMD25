@@ -8,9 +8,16 @@ import { Comparison } from 'src/entities/comparison.entity';
 import { ComparisonsModule } from '../comparisons/comparisons.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Transport, Comparison]), forwardRef(() => ComparisonsModule)],
+  // Import Transport and Comparison repositories and handle circular dependency with ComparisonsModule
+  imports: [
+    TypeOrmModule.forFeature([Transport, Comparison]),
+    forwardRef(() => ComparisonsModule),
+  ],
+  // Register TransportController
   controllers: [TransportController],
+  // Register TransportService and TransportSimulatorService
   providers: [TransportService, TransportSimulatorService],
+  // Export TransportService for use in other modules
   exports: [TransportService],
 })
 export class TransportModule {}

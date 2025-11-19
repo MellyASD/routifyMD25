@@ -1,6 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
-import { IsAddressOrCity } from 'src/common/validators/is-address-or-city.validator';
 
 export class CreateComparisonDTO {
   @ApiProperty({
@@ -9,21 +8,15 @@ export class CreateComparisonDTO {
   })
   @IsString()
   @IsNotEmpty()
-  @IsAddressOrCity({
-    message:
-      'Origin must be a valid address or city Example "Bogota DC o Cra 24 #45"',
-  })
+  // Origin of the comparison
   origin: string;
 
   @ApiProperty({
     description: 'Destination address or city',
-    example: 'Calle 50 #30',
+    example: 'Cali',
   })
   @IsString()
   @IsNotEmpty()
-  @IsAddressOrCity({
-    message:
-      'Destination must be a valid address or city, Example "Bogota DC o Cra 24 #45"',
-  })
+  // Destination of the comparison
   destination: string;
 }
