@@ -1,4 +1,4 @@
-
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { AllExceptionsFilter } from './http-exception.filter';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 import { Request, Response } from 'express';
@@ -89,7 +89,7 @@ describe('AllExceptionsFilter', () => {
     );
   });
 
-  it('Should handle unknown exception with INTERNAL_SERVER_ERROR', () => {
+  it('should handle unknown exception with INTERNAL_SERVER_ERROR', () => {
     const exception = new Error('Unknown error');
 
     const mockHost = createMockHost();
