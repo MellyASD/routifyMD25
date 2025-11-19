@@ -65,6 +65,16 @@ export class UsersService {
     id: number,
     updateUser: UpdateUserDTO,
   ): Promise<{ message: string; user: User }> {
+    const hasAtLeastOneField = Object.values(updateUser).some(
+      (value) => value !== undefined && value !== null,
+    );
+
+    if (!hasAtLeastOneField) {
+      throw new BadRequestException(
+        'You must submit at least one field to update',
+      );
+    }
+
     const user = await this.findOne(id);
     if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
 
