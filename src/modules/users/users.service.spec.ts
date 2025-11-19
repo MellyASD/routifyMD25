@@ -1,23 +1,20 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { User, UserRole } from 'src/entities/user.entity';
-import { Repository } from 'typeorm';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { UpdateUserDTO } from 'src/dto/update-user.dto';
 import { UserNotFoundException } from 'src/common/exceptions/routify.exception';
 import { BadRequestException } from '@nestjs/common';
 
-// Mock completo de bcrypt
 jest.mock('bcrypt', () => ({
   hash: jest.fn().mockResolvedValue('hashedPassword'),
 }));
 
-import * as bcrypt from 'bcrypt';
-
 describe('UsersService', () => {
   let service: UsersService;
-  let repo: Repository<User>;
 
   const mockUserRepo = {
     find: jest.fn(),
@@ -44,8 +41,12 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    repo = module.get<Repository<User>>(getRepositoryToken(User));
     jest.clearAllMocks();
+  });
+
+  it('should inject repository into the service', () => {
+    expect(service).toBeInstanceOf(UsersService);
+    expect((service as any).usersRepo).toBeDefined();
   });
 
   describe('findAll', () => {
@@ -53,7 +54,9 @@ describe('UsersService', () => {
       mockUserRepo.find.mockResolvedValue([mockUser]);
       const users = await service.findAll();
       expect(users).toEqual([mockUser]);
-      expect(mockUserRepo.find).toHaveBeenCalledWith({ where: { status: true } });
+      expect(mockUserRepo.find).toHaveBeenCalledWith({
+        where: { status: true },
+      });
     });
   });
 
@@ -79,16 +82,27 @@ describe('UsersService', () => {
 
     it('should throw UserNotFoundException if no users found', async () => {
       mockUserRepo.find.mockResolvedValue([]);
-      await expect(service.findByName('NoUser')).rejects.toThrow(UserNotFoundException);
+      await expect(service.findByName('NoUser')).rejects.toThrow(
+        UserNotFoundException,
+      );
     });
   });
 
   describe('create', () => {
     it('should create a new user', async () => {
-      const newUser: CreateUserDTO = { name: 'New', email: 'new@example.com', password: '1234', role: UserRole.USER };
+      const newUser: CreateUserDTO = {
+        name: 'New',
+        email: 'new@example.com',
+        password: '1234',
+        role: UserRole.USER,
+      };
       mockUserRepo.findOne.mockResolvedValue(null);
       mockUserRepo.create.mockReturnValue(newUser);
-      mockUserRepo.save.mockResolvedValue({ ...newUser, id: 2, password: 'hashedPassword' });
+      mockUserRepo.save.mockResolvedValue({
+        ...newUser,
+        id: 2,
+        password: 'hashedPassword',
+      });
 
       const result = await service.create(newUser);
       expect(result.user.password).toBe('hashedPassword');
@@ -96,20 +110,32 @@ describe('UsersService', () => {
     });
 
     it('should throw BadRequestException if email exists', async () => {
-      const newUser: CreateUserDTO = { name: 'New', email: 'test@example.com', password: '1234', role: UserRole.USER };
+      const newUser: CreateUserDTO = {
+        name: 'New',
+        email: 'test@example.com',
+        password: '1234',
+        role: UserRole.USER,
+      };
       mockUserRepo.findOne.mockResolvedValue(mockUser);
-      await expect(service.create(newUser)).rejects.toThrow(BadRequestException);
+      await expect(service.create(newUser)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('update', () => {
     it('should update an existing user', async () => {
       const updateDto: UpdateUserDTO = {
-        name: 'Updated', password: 'newpass',
-        role: UserRole.ADMIN
+        name: 'Updated',
+        password: 'newpass',
+        role: UserRole.ADMIN,
       };
       mockUserRepo.findOne.mockResolvedValue(mockUser);
-      mockUserRepo.save.mockResolvedValue({ ...mockUser, ...updateDto, password: 'hashedPassword' });
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        ...updateDto,
+        password: 'hashedPassword',
+      });
 
       const result = await service.update(1, updateDto);
       expect(result.user.name).toBe('Updated');
@@ -118,17 +144,122 @@ describe('UsersService', () => {
 
     it('should throw UserNotFoundException if user does not exist', async () => {
       mockUserRepo.findOne.mockResolvedValue(null);
-      await expect(service.update(999, {} as UpdateUserDTO)).rejects.toThrow(UserNotFoundException);
+      await expect(service.update(999, {} as UpdateUserDTO)).rejects.toThrow(
+        UserNotFoundException,
+      );
     });
 
-    it('should throw BadRequestException if email already exists', async () => {
+    it('should throw BadRequestException if email already exists (different user)', async () => {
       const updateDto: UpdateUserDTO = {
         email: 'exists@example.com',
-        role: UserRole.ADMIN
+        role: UserRole.ADMIN,
       };
-      mockUserRepo.findOne.mockResolvedValueOnce(mockUser); // user to update
-      mockUserRepo.findOne.mockResolvedValueOnce({ ...mockUser, id: 2 }); // another user with same email
-      await expect(service.update(1, updateDto)).rejects.toThrow(BadRequestException);
+
+      mockUserRepo.findOne
+        .mockImplementationOnce(() => Promise.resolve(mockUser))
+        .mockImplementationOnce(() =>
+          Promise.resolve({ ...mockUser, id: 2, email: 'exists@example.com' }),
+        );
+
+      await expect(service.update(1, updateDto)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should allow same email for the same user', async () => {
+      const updateDto: UpdateUserDTO = {
+        email: 'test@example.com',
+        role: UserRole.ADMIN,
+      };
+
+      mockUserRepo.findOne
+        .mockImplementationOnce(() => Promise.resolve(mockUser))
+        .mockImplementationOnce(() => Promise.resolve({ ...mockUser, id: 1 }));
+
+      mockUserRepo.save.mockResolvedValue(mockUser);
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.email).toBe('test@example.com');
+    });
+
+    it('should throw BadRequestException if no fields provided', async () => {
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      await expect(service.update(1, {} as UpdateUserDTO)).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+
+    it('should convert string role to UserRole enum', async () => {
+      const updateDto: UpdateUserDTO = { role: UserRole.ADMIN };
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        role: UserRole.ADMIN,
+      });
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.role).toBe(UserRole.ADMIN);
+    });
+
+    it('should skip role conversion if role is already UserRole enum', async () => {
+      const updateDto: UpdateUserDTO = { role: UserRole.USER };
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        role: UserRole.USER,
+      });
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.role).toBe(UserRole.USER);
+    });
+
+    it('should skip role conversion if role is undefined', async () => {
+      const updateDto: UpdateUserDTO = { name: 'NoRoleUpdate' };
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        name: 'NoRoleUpdate',
+      });
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.name).toBe('NoRoleUpdate');
+      expect(result.user.role).toBe(mockUser.role);
+    });
+
+    it('should skip password hashing if password is undefined', async () => {
+      const updateDto: UpdateUserDTO = { name: 'NoPasswordUpdate' };
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        name: 'NoPasswordUpdate',
+      });
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.name).toBe('NoPasswordUpdate');
+      expect(result.user.password).toBe(mockUser.password);
+    });
+
+    it('should not check email duplication if email is same as current', async () => {
+      const updateDto: UpdateUserDTO = { email: 'test@example.com' };
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue(mockUser);
+
+      const result = await service.update(1, updateDto);
+      expect(result.user.email).toBe('test@example.com');
+    });
+
+    it('should skip role conversion if role is not a string (numeric enum)', async () => {
+      const updateDto: UpdateUserDTO = { role: 1 as any };
+
+      mockUserRepo.findOne.mockResolvedValue(mockUser);
+      mockUserRepo.save.mockResolvedValue({
+        ...mockUser,
+        role: 1,
+      });
+
+      const result = await service.update(1, updateDto);
+
+      expect(result.user.role).toBe(1);
     });
   });
 

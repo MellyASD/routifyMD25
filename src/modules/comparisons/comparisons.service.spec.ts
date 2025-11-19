@@ -1,133 +1,207 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import { Test, TestingModule } from '@nestjs/testing';
-import { TransportSimulatorService } from '../services/transport-simulator.service';
-import { ComparisonsService } from '../comparisons/comparisons.service';
-import { TransportOption } from 'src/interfaces/transport-comparison.interface';
+import { ComparisonsService } from './comparisons.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { Transport } from 'src/entities/transport.entity';
-import { NotFoundException } from '@nestjs/common';
+import { Comparison } from 'src/entities/comparison.entity';
 import { TransportService } from '../transport/transport.service';
+import { User } from 'src/entities/user.entity';
+import { NotFoundException } from '@nestjs/common';
+import { Repository } from 'typeorm';
+import {
+  TransportOption,
+  ComparisonResult,
+} from 'src/interfaces/transport-comparison.interface';
 
-describe('TransportService', () => {
-  let service: TransportService;
-  let mockSimulator: Partial<TransportSimulatorService>;
-  let mockComparisonsService: Partial<ComparisonsService>;
-  let moduleRef: TestingModule;
+describe('ComparisonsService', () => {
+  let service: ComparisonsService;
+  let comparisonRepo: jest.Mocked<Repository<Comparison>>;
+  let userRepo: jest.Mocked<Repository<User>>;
+  let transportService: jest.Mocked<TransportService>;
 
-  const mockOptions: TransportOption[] = [
-    {
-      type: 'taxi',
-      score: 10,
-      distance: 5,
-      duration: 15,
-      cost: 12.5,
-      comfort: 4,
-      reliability: 0.9,
-    },
-    {
-      type: 'bus',
-      score: 8,
-      distance: 6,
-      duration: 20,
-      cost: 2.5,
-      comfort: 3,
-      reliability: 0.85,
-    },
-  ];
+  const mockOption: TransportOption = {
+    type: 'taxi',
+    score: 10,
+    distance: 5,
+    duration: 15,
+    cost: 12.5,
+    comfort: 4,
+    reliability: 0.9,
+  };
+
+  const mockTransportResult: ComparisonResult = {
+    origin: 'A',
+    destination: 'B',
+    options: [mockOption],
+    recommended: mockOption,
+    fastest: mockOption,
+    cheapest: mockOption,
+  };
+
+  const mockComparison = {
+    id: 1,
+    origin: 'A',
+    destination: 'B',
+    results: mockTransportResult,
+    user: { id: 10 },
+  };
 
   beforeEach(async () => {
-    mockSimulator = {
-      simulateTransportOptions: jest.fn().mockReturnValue(mockOptions),
-    };
-
-    mockComparisonsService = {
-      create: jest.fn(),
-    };
-
-    const repoMock = {
-      create: jest.fn().mockImplementation(dto => ({ id: 1, ...dto })),
-      save: jest.fn().mockImplementation(entity => Promise.resolve({ id: 1, ...entity })),
-      find: jest.fn().mockResolvedValue([{ id: 1, type: 'taxi' }]),
-      findOne: jest.fn().mockImplementation(({ where: { id } }) =>
-        Promise.resolve(id === 1 ? { id: 1, type: 'taxi' } : undefined),
-      ),
-    };
-
-    moduleRef = await Test.createTestingModule({
+    const module: TestingModule = await Test.createTestingModule({
       providers: [
-        TransportService,
-        { provide: TransportSimulatorService, useValue: mockSimulator },
-        { provide: ComparisonsService, useValue: mockComparisonsService },
-        { provide: getRepositoryToken(Transport), useValue: repoMock },
+        ComparisonsService,
+        {
+          provide: getRepositoryToken(Comparison),
+          useValue: {
+            create: jest.fn(),
+            save: jest.fn(),
+            find: jest.fn(),
+            findOne: jest.fn(),
+            delete: jest.fn(),
+            createQueryBuilder: jest.fn(),
+          },
+        },
+        {
+          provide: getRepositoryToken(User),
+          useValue: {
+            findOne: jest.fn(),
+          },
+        },
+        {
+          provide: TransportService,
+          useValue: {
+            compareTransports: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
-    service = moduleRef.get<TransportService>(TransportService);
+    service = module.get<ComparisonsService>(ComparisonsService);
+
+    comparisonRepo = module.get(getRepositoryToken(Comparison));
+    userRepo = module.get(getRepositoryToken(User));
+    transportService = module.get(TransportService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should create a comparison', async () => {
+    userRepo.findOne.mockResolvedValue({ id: 10 } as any);
+    transportService.compareTransports.mockResolvedValue(mockTransportResult);
+
+    comparisonRepo.create.mockReturnValue(mockComparison as any);
+    comparisonRepo.save.mockResolvedValue(mockComparison as any);
+
+    const result = await service.create({ origin: 'A', destination: 'B' }, 10);
+
+    expect(userRepo.findOne).toHaveBeenCalledWith({ where: { id: 10 } });
+    expect(transportService.compareTransports).toHaveBeenCalledWith('A', 'B');
+    expect(comparisonRepo.create).toHaveBeenCalled();
+    expect(comparisonRepo.save).toHaveBeenCalled();
+    expect(result).toEqual(mockComparison);
   });
 
-  it('should compare transports and save comparison when userId is provided', async () => {
-    await service.compareTransports('A', 'B', '10');
+  it('should throw if user does not exist on create', async () => {
+    userRepo.findOne.mockResolvedValue(null);
 
-    expect(mockSimulator.simulateTransportOptions).toHaveBeenCalledWith('A', 'B');
-
-    expect(mockComparisonsService.create).toHaveBeenCalledWith(
-      { origin: 'A', destination: 'B' },
-      10,
-    );
+    await expect(
+      service.create({ origin: 'A', destination: 'B' }, 99),
+    ).rejects.toThrow(NotFoundException);
   });
 
-  it('should NOT save comparison when userId not provided', async () => {
-    await service.compareTransports('A', 'B');
+  it('should return all comparisons', async () => {
+    comparisonRepo.find.mockResolvedValue([mockComparison] as any);
 
-    expect(mockSimulator.simulateTransportOptions).toHaveBeenCalledWith('A', 'B');
-    expect(mockComparisonsService.create).not.toHaveBeenCalled();
+    const result = await service.findAll();
+    expect(result).toEqual([mockComparison]);
+    expect(comparisonRepo.find).toHaveBeenCalledWith({
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
   });
 
-  it('should throw when simulator returns empty options (current implementation)', async () => {
-    
-    mockSimulator.simulateTransportOptions = jest.fn().mockReturnValue([]);
-    await expect(service.compareTransports('A', 'B')).rejects.toThrow();
+  it('should find comparisons by user', async () => {
+    userRepo.findOne.mockResolvedValue({ id: 1 } as any);
+    comparisonRepo.find.mockResolvedValue([mockComparison] as any);
+
+    const result = await service.findByUser(1);
+
+    expect(result).toEqual([mockComparison]);
+    expect(comparisonRepo.find).toHaveBeenCalledWith({
+      where: { user: { id: 1 } },
+      relations: ['user'],
+      order: { createdAt: 'DESC' },
+    });
   });
 
-  it('create should call repository create and save', async () => {
-    const repo = moduleRef.get(getRepositoryToken(Transport)) as any;
-    const dto = { type: 'bike', distance: 10 } as any;
-    (repo.create as jest.Mock).mockReturnValue(dto);
-    (repo.save as jest.Mock).mockResolvedValue({ id: 2, ...dto });
-    await expect(service.create(dto)).resolves.toEqual({ id: 2, ...dto });
-    expect(repo.create).toHaveBeenCalledWith(dto);
-    expect(repo.save).toHaveBeenCalledWith(dto);
+  it('should throw if user does not exist on findByUser', async () => {
+    userRepo.findOne.mockResolvedValue(null);
+
+    await expect(service.findByUser(999)).rejects.toThrow(NotFoundException);
   });
 
-  it('findAll should return array from repo.find', async () => {
-    const repo = moduleRef.get(getRepositoryToken(Transport)) as any;
-    (repo.find as jest.Mock).mockResolvedValue([{ id: 5 }]);
-    await expect(service.findAll()).resolves.toEqual([{ id: 5 }]);
-    expect(repo.find).toHaveBeenCalled();
+  it('should return one comparison', async () => {
+    comparisonRepo.findOne.mockResolvedValue(mockComparison as any);
+
+    const result = await service.findOne(1);
+
+    expect(result).toEqual(mockComparison);
+    expect(comparisonRepo.findOne).toHaveBeenCalledWith({
+      where: { id: 1 },
+      relations: ['user'],
+    });
   });
 
-  it('findOne should return transport when found', async () => {
-    const repo = moduleRef.get(getRepositoryToken(Transport)) as any;
-    (repo.findOne as jest.Mock).mockResolvedValue({ id: 7 });
-    await expect(service.findOne(7)).resolves.toEqual({ id: 7 });
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: 7 } });
+  it('should throw if comparison not found', async () => {
+    comparisonRepo.findOne.mockResolvedValue(null);
+
+    await expect(service.findOne(999)).rejects.toThrow(NotFoundException);
   });
 
-  it('findOne should throw NotFoundException when not found', async () => {
-    const repo = moduleRef.get(getRepositoryToken(Transport)) as any;
-    (repo.findOne as jest.Mock).mockResolvedValue(undefined);
-    await expect(service.findOne(999)).rejects.toBeInstanceOf(NotFoundException);
+  it('should remove a comparison', async () => {
+    comparisonRepo.delete.mockResolvedValue({ affected: 1 } as any);
+
+    await expect(service.remove(1)).resolves.not.toThrow();
   });
 
-  it('compareTransports should return options ordered by score', async () => {
-    mockSimulator.simulateTransportOptions = jest.fn().mockReturnValue([
-      { ...mockOptions[1] }, 
-      { ...mockOptions[0] }, 
-    ]);
-    const result = await service.compareTransports('A', 'B');
-    expect(result.options[0].score).toBeGreaterThanOrEqual(result.options[1].score);
+  it('should throw if comparison not found on remove', async () => {
+    comparisonRepo.delete.mockResolvedValue({ affected: 0 } as any);
+
+    await expect(service.remove(99)).rejects.toThrow(NotFoundException);
+  });
+
+  it('should return stats without userId', async () => {
+    const qb: any = {
+      where: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(5),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([mockComparison]),
+    };
+
+    comparisonRepo.createQueryBuilder.mockReturnValue(qb);
+
+    const stats = await service.getStats();
+
+    expect(stats.totalComparisons).toBe(5);
+    expect(stats.recentComparisons).toEqual([mockComparison]);
+  });
+
+  it('should return stats with userId', async () => {
+    const qb: any = {
+      where: jest.fn().mockReturnThis(),
+      getCount: jest.fn().mockResolvedValue(3),
+      orderBy: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      getMany: jest.fn().mockResolvedValue([mockComparison]),
+    };
+
+    comparisonRepo.createQueryBuilder.mockReturnValue(qb);
+
+    const stats = await service.getStats('10');
+
+    expect(qb.where).toHaveBeenCalledWith('comparison.userId = :userId', {
+      userId: '10',
+    });
+    expect(stats.totalComparisons).toBe(3);
   });
 });
