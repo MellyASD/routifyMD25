@@ -108,3 +108,7 @@ Registro de logs
 Pruebas
 npm run test
 npm run test:cov
+
+![Testings](src/assets/test.png)
+
+

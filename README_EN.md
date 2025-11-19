@@ -114,4 +114,4 @@ GET    /comparisons/history   → Retrieve history of previous comparisons
     npm run test
     npm run test:cov
 
-
+![Testings](src/assets/test.png)
