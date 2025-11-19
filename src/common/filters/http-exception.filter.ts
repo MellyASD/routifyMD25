@@ -6,27 +6,33 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+
+interface RequestUser {
+  userId: number;
+  email: string;
+}
+
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest<Request>();
+    const request = ctx.getRequest<Request & { user?: RequestUser }>();
 
     const status =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const rawResponse: string | Record<string, unknown> =
+    const raw =
       exception instanceof HttpException
-        ? (exception.getResponse() as string | Record<string, unknown>)
+        ? exception.getResponse()
         : 'INTERNAL SERVER ERROR';
 
     const errorResponse =
-      typeof rawResponse === 'object' && 'message' in rawResponse
-        ? (rawResponse.message as string | string[])
-        : rawResponse;
+      typeof raw === 'object' && raw !== null && 'message' in raw
+        ? (raw.message as string | string[])
+        : raw;
 
     const errorPayload = {
       success: false,
@@ -40,6 +46,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
       `[Error ${status}] ${request.method} ${request.url} -`,
       errorResponse,
     );
+
     response.status(status).json(errorPayload);
   }
 }
