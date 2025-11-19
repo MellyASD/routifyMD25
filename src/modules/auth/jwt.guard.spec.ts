@@ -4,6 +4,6 @@ describe('JwtAuthGuard', () => {
   it('should be defined and constructable', () => {
     const guard = new JwtAuthGuard();
     expect(guard).toBeDefined();
-    expect(typeof guard.canActivate).toBe('function'); // verifica que tenga el método esperado
+    expect(typeof guard.canActivate).toBe('function'); 
   });
 });

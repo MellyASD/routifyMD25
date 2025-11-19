@@ -66,7 +66,7 @@ describe('AuthService', () => {
   it('should return access token on valid login', async () => {
     const dto = { email: 'test@example.com', password: '123456' };
     const user = {
-      id: 'abc123',
+      id: 'abc1234',
       email: dto.email,
       password: await bcrypt.hash(dto.password, 10),
       name: 'Test',

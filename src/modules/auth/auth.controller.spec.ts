@@ -61,7 +61,7 @@ describe('AuthController (e2e)', () => {
   });
 
   it('/auth/login (POST) should return access token', async () => {
-    const dto: LoginDTO = { email: 'test@example.com', password: '123456' };
+    const dto: LoginDTO = { email: 'test1@example.com', password: '123456' };
     authService.login.mockResolvedValue({ accessToken: 'mocked-token' });
 
     const res = await request(app.getHttpServer())
