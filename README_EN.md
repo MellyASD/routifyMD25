@@ -58,57 +58,58 @@ npm
     npm run build
     npm run start:prod
 
-# Project structure 
+### Estructura del proyecto
+
+```bash
 Routify/
 ├── src/
-│   ├── assets/                 # Other files such product logo
-│   ├── common/                 # Pipes and common utilities
-│   ├── dto/                    # Data Transfer Objects
-│   ├── entities/               # Database entities
-│   ├── interfaces/             # TypeScript Interfaces
-│   ├── migrations/             # Database migrations
-│   └── modules/                # Aplication modules
-│       ├── auth/               # Authentication module (JWT, Passport)
-│       ├── comparisons/        # Trasnport mode comparison logic
-│       ├── logs/               # Logging interceptor and persistence
-│       ├── services/           # Service for silmulations
-        ├── transport/          # Route simulation engine
-│       └── users/              # User management
-└── test/                       
-test/                           # Unit and integration tests
-.env.example                    # Environment variable template
+│   ├── assets/       
+│   ├── common/       
+│   ├── dto/          
+│   ├── entities/    
+│   ├── interfaces/   
+│   ├── migrations/     
+│   └── modules/
+│       ├── auth/
+│       ├── comparisons/
+│       ├── logs/
+│       ├── services/
+│       ├── transport/     
+│       └── users/
+├── test/
+└── .env.example
 
+## Endpoints de la API
 
-# API Endpoints
-Auth
+### Autenticación
+```
+| Método | Endpoint            | Descripción                          | Protección     |
+|--------|---------------------|--------------------------------------|----------------|
+| POST   | `/auth/register`    | Registrar nuevo usuario              | Pública        |
+| POST   | `/auth/login`       | Iniciar sesión y obtener JWT         | Pública        |
 
-POST   /auth/register         → Register a new user
-POST   /auth/login            → Authenticate and receive JWT token
+### Usuarios
+| Método | Endpoint          | Descripción                          | Protección     |
+|--------|-------------------|--------------------------------------|----------------|
+| GET    | `/users`          | Listar todos los usuarios            | Solo Admin     |
+| GET    | `/users/:id`      | Obtener usuario por ID               | Admin o propio |
+| PATCH  | `/users/:id`      | Actualizar datos del usuario         | Admin o propio |
+| DELETE | `/users/:id`      | Eliminar usuario                     | Solo Admin     |
 
-Users
+### Rutas de Transporte
+| Método | Endpoint              | Descripción                          | Protección     |
+|--------|-----------------------|--------------------------------------|----------------|
+| GET    | `/transport`          | Obtener todas las rutas              | Autenticado    |
+| POST   | `/transport`          | Crear nueva ruta de transporte       | Autenticado    |
+| GET    | `/transport/:id`      | Obtener una ruta específica          | Autenticado    |
+| PATCH  | `/transport/:id`      | Actualizar ruta                      | Autenticado    |
+| DELETE | `/transport/:id`      | Eliminar ruta                        | Autenticado    |
 
-GET    /users                 → Get all users (admin only)
-GET    /users/:id             → Get user by ID
-PATCH  /users/:id             → Update user information
-DELETE /users/:id             → Delete user
-
-Transport
-
-GET    /transport             → Get all transport routes
-POST   /transport             → Create a new transport route
-GET    /transport/:id         → Get transport route by ID
-PATCH  /transport/:id         → Update transport route
-DELETE /transport/:id         → Delete transport route
-
-Comparisons
-
-POST   /comparisons           → Compare two or more transport routes
-GET    /comparisons/history   → Retrieve history of previous comparisons
+```
 
 # Logs register
 
 ![Logs in DB](src/assets/image.png)
-
 
 # Testing:
     npm run test

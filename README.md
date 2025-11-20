@@ -55,51 +55,68 @@ npm run build
 npm run start:prod
 
 
-# Estructura del proyecto
+
+### Estructura del proyecto
+
+```
 Routify/
 ├── src/
-│   ├── assets/                 # Archivos adicionales como logos
-│   ├── common/                 # Pipes y utilidades compartidas
-│   ├── dto/                    # Objetos de transferencia de datos
-│   ├── entities/               # Entidades de base de datos
-│   ├── interfaces/             # Interfaces TypeScript
-│   ├── migrations/             # Migraciones de base de datos
-│   └── modules/                # Módulos de la aplicación
-│       ├── auth/               # Módulo de autenticación (JWT, Passport)
-│       ├── comparisons/        # Lógica de comparación de modos de transporte
-│       ├── logs/               # Interceptor y persistencia de logs
-│       ├── services/           # Servicios para simulaciones
-│       ├── transport/          # Motor de simulación de rutas
-│       └── users/              # Gestión de usuarios
-└── test/                       # Pruebas unitarias e integradas
-.env.example                    # Plantilla de variables de entorno
+│   ├── assets/
+│   ├── common/
+│   ├── dto/
+│   ├── entities/
+│   ├── interfaces/
+│   ├── migrations/
+│   └── modules/
+│       ├── auth/
+│       ├── comparisons/
+│       ├── logs/
+│       ├── services/
+│       ├── transport/     
+│       └── users/
+├── test/
+└── .env.example
+```
 
 
+```
+## Endpoints de la API
 
-# Endpoints de la API
-Autenticación
-POST   /auth/register         → Registrar nuevo usuario
-POST   /auth/login            → Autenticar y obtener token JWT
+### Autenticación
+```
+
+| Método | Endpoint            | Descripción                          | Protección     |
+|--------|---------------------|--------------------------------------|----------------|
+| POST   | `/auth/register`    | Registrar nuevo usuario              | Pública        |
+| POST   | `/auth/login`       | Iniciar sesión y obtener JWT         | Pública        |
+
+### Usuarios
+| Método | Endpoint          | Descripción                          | Protección     |
+|--------|-------------------|--------------------------------------|----------------|
+| GET    | `/users`          | Listar todos los usuarios            | Solo Admin     |
+| GET    | `/users/:id`      | Obtener usuario por ID               | Admin o propio |
+| PATCH  | `/users/:id`      | Actualizar datos del usuario         | Admin o propio |
+| DELETE | `/users/:id`      | Eliminar usuario                     | Solo Admin     |
+
+### Rutas de Transporte
+| Método | Endpoint              | Descripción                          | Protección     |
+|--------|-----------------------|--------------------------------------|----------------|
+| GET    | `/transport`          | Obtener todas las rutas              | Autenticado    |
+| POST   | `/transport`          | Crear nueva ruta de transporte       | Autenticado    |
+| GET    | `/transport/:id`      | Obtener una ruta específica          | Autenticado    |
+| PATCH  | `/transport/:id`      | Actualizar ruta                      | Autenticado    |
+| DELETE | `/transport/:id`      | Eliminar ruta                        | Autenticado    |
+
+### Comparaciones
+| Método | Endpoint                       | Descripción                                     | Protección     |
+|--------|--------------------------------|-------------------------------------------------|----------------|
+| POST   | `/comparisons`                 | Comparar múltiples rutas (emisiones, tiempo, costo) | Autenticado    |
+| GET    | `/comparisons/history`         | Historial de comparaciones del usuario          | Autenticado    |
+
+> Todos los endpoints (excepto autenticación) requieren el header:  
+> `Authorization: Bearer <token>`
 
 
-Usuarios
-GET    /users                 → Obtener todos los usuarios (solo admin)
-GET    /users/:id             → Obtener usuario por ID
-PATCH  /users/:id             → Actualizar información del usuario
-DELETE /users/:id             → Eliminar usuario
-
-
-Transporte
-GET    /transport             → Obtener todas las rutas de transporte
-POST   /transport             → Crear nueva ruta
-GET    /transport/:id         → Obtener ruta por ID
-PATCH  /transport/:id         → Actualizar ruta
-DELETE /transport/:id         → Eliminar ruta
-
-
-Comparaciones
-POST   /comparisons           → Comparar dos o más rutas de transporte
-GET    /comparisons/history   → Obtener historial de comparaciones previas
 
 Registro de logs 
 
@@ -108,6 +125,7 @@ Registro de logs
 Pruebas
 npm run test
 npm run test:cov
+
 
 ![Testings](src/assets/test.png)
 
