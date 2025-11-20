@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="src/assets/logo.png" alt="Logo" width="120"/>
-</p
+
+![Routify Logo](src/assets/logor.png)
+
 # Routify
 
 Una aplicación web para comparar todos los modos de transporte en un solo lugar. RoutifyMD25 es una API backend modular construida con NestJS, diseñada para respaldar sistemas de transporte inteligente. Ofrece autenticación segura, gestión de usuarios y rutas, comparación de trayectos y registro persistente de logs, todo estructurado para ser escalable y mantenible.
