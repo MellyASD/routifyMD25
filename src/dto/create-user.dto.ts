@@ -14,6 +14,7 @@ export class CreateUserDTO {
     example: 'Juan',
   })
   @IsNotEmpty()
+  // Username
   name: string;
 
   @ApiProperty({
@@ -22,6 +23,7 @@ export class CreateUserDTO {
   })
   @IsNotEmpty()
   @IsEmail()
+  // User email address
   email: string;
 
   @ApiProperty({
@@ -32,6 +34,7 @@ export class CreateUserDTO {
   @Length(6, 10, {
     message: 'The password must be between 6 and 10 characters long',
   })
+  // Password (6-10 characters)
   password: string;
 
   @ApiProperty({
@@ -41,5 +44,6 @@ export class CreateUserDTO {
   })
   @IsString()
   @IsOptional()
+  // User role (optional)
   role?: UserRole;
 }

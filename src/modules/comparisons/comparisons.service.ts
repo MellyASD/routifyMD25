@@ -24,23 +24,24 @@ export class ComparisonsService {
     private userRepository: Repository<User>,
   ) {}
 
+  // Create a new comparison
   async create(
     createComparisonDto: CreateComparisonDTO,
     userId: number,
   ): Promise<Comparison> {
-    // Valida que el usuario realmente existe
+    // Validate that the user exists
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
     }
 
-    // Simula el resultado y lo guarda en 'results'
+    // Execute transport comparison and store results
     const transportResults = await this.transportService.compareTransports(
       createComparisonDto.origin,
       createComparisonDto.destination,
     );
 
-    // Crea el objeto y lo persiste
+    /// Create the comparison entity
     const comparison = this.comparisonRepository.create({
       origin: createComparisonDto.origin,
       destination: createComparisonDto.destination,
@@ -48,15 +49,17 @@ export class ComparisonsService {
       results: transportResults,
     });
 
+    // Persist the comparison in the database
     try {
       return await this.comparisonRepository.save(comparison);
     } catch (err) {
       throw new InternalServerErrorException(
-        `Error creando comparación: ${err.message}`,
+        `Error creating comparison: ${err.message}`,
       );
     }
   }
 
+  // Get all comparisons
   async findAll(): Promise<Comparison[]> {
     return await this.comparisonRepository.find({
       relations: ['user'],
@@ -64,6 +67,7 @@ export class ComparisonsService {
     });
   }
 
+  // Get all comparisons made by a specific user
   async findByUser(userId: number): Promise<Comparison[]> {
     const userExists = await this.userRepository.findOne({
       where: { id: userId },
@@ -79,6 +83,7 @@ export class ComparisonsService {
     });
   }
 
+  // Get a single comparison by ID
   async findOne(id: number): Promise<Comparison> {
     const comparison = await this.comparisonRepository.findOne({
       where: { id },
@@ -90,15 +95,18 @@ export class ComparisonsService {
     return comparison;
   }
 
+  // Delete a comparison by ID
   async remove(id: number): Promise<void> {
     const result = await this.comparisonRepository.delete(id);
     if (result.affected === 0) {
-      throw new NotFoundException(`Comparison con ID ${id} no encontrada`);
+      throw new NotFoundException(`Comparison with ID ${id} not found`);
     }
   }
 
+  // Get statistics
   async getStats(userId?: string) {
     const query = this.comparisonRepository.createQueryBuilder('comparison');
+    // Filter by user if userId is provided
     if (userId) {
       query.where('comparison.userId = :userId', { userId });
     }

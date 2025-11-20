@@ -8,6 +8,7 @@ import {
 } from 'class-validator';
 import { TransportType } from '../entities/transport.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { IsAddressOrCity } from 'src/common/validators/is-address-or-city.validator';
 export class CreateRouteDTO {
   @ApiProperty({
     example: 'private_car',
@@ -15,22 +16,31 @@ export class CreateRouteDTO {
     enum: TransportType,
   })
   @IsEnum(TransportType)
+  // Type of transport
   type: TransportType;
 
   @ApiProperty({
-    example: 'Bogota DC',
+    example: 'Cra 20 #45-10',
     description: 'Route starting point',
   })
   @IsString()
   @IsNotEmpty()
+  @IsAddressOrCity({
+    message:
+      'Origin must be a valid address or city Example "Bogota DC o Cra 24 #45"',
+  })
   origin: string;
 
   @ApiProperty({
-    example: 'Cali',
+    example: 'Calle 50 #30',
     description: 'Route destination point',
   })
   @IsString()
   @IsNotEmpty()
+  @IsAddressOrCity({
+    message:
+      'Destination must be a valid address or city Example "Bogota DC o Cra 24 #45"',
+  })
   destination: string;
 
   @ApiProperty({
@@ -39,6 +49,7 @@ export class CreateRouteDTO {
   })
   @IsNumber()
   @Min(0)
+  // Distance
   distance: number;
 
   @ApiProperty({
@@ -47,6 +58,7 @@ export class CreateRouteDTO {
   })
   @IsNumber()
   @Min(0)
+  //Duration
   duration: number;
 
   @ApiProperty({
@@ -55,6 +67,7 @@ export class CreateRouteDTO {
   })
   @IsNumber()
   @Min(0)
+  // Total cost
   cost: number;
 
   @ApiProperty({
@@ -63,6 +76,7 @@ export class CreateRouteDTO {
   })
   @IsNumber()
   @Min(1)
+  // Comfort level
   comfort: number;
 
   @ApiProperty({
@@ -71,6 +85,7 @@ export class CreateRouteDTO {
   })
   @IsNumber()
   @Min(1)
+  // Reliability level
   reliability: number;
 
   @ApiProperty({
@@ -80,5 +95,6 @@ export class CreateRouteDTO {
   })
   @IsString()
   @IsOptional()
+  // Notes or observations (optional)
   notes?: string;
 }

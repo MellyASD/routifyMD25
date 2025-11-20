@@ -11,8 +11,10 @@ import { LoggingDbInterceptor } from './modules/logs/interceptors/logging-db.int
 import { ComparisonsModule } from './modules/comparisons/comparisons.module';
 
 @Module({
+  // Load environment configuration globally
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    // Database configuration using environment variables
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -27,13 +29,16 @@ import { ComparisonsModule } from './modules/comparisons/comparisons.module';
         synchronize: false,
       }),
     }),
+    // Application modules
     UsersModule,
     AuthModule,
     TransportModule,
     LogsModule,
     ComparisonsModule,
   ],
+  // Main controller
   controllers: [AppController],
+  // Global services and providers
   providers: [AppService, LoggingDbInterceptor],
 })
 export class AppModule {}

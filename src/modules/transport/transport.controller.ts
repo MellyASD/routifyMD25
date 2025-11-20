@@ -5,7 +5,7 @@ import {
   Body,
   Param,
   UseGuards,
-  ParseIntPipe
+  ParseIntPipe,
 } from '@nestjs/common';
 import { TransportService } from './transport.service';
 import { Roles } from '../auth/roles.decorator';
@@ -29,6 +29,8 @@ import {
 export class TransportController {
   constructor(private readonly transportService: TransportService) {}
 
+  // POST /api/transport/route
+  // Create a new transport route
   @Post('route')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.TRUCKER)
@@ -41,6 +43,8 @@ export class TransportController {
     return this.transportService.create(createRouteDto);
   }
 
+  // GET /api/transport
+  // Get all transport routes
   @Get()
   @ApiOperation({ summary: 'Get all transport routes' })
   @ApiResponse({ status: 200, description: 'List of all transport routes' })
@@ -48,6 +52,8 @@ export class TransportController {
     return this.transportService.findAll();
   }
 
+  // GET /api/transport/:id
+  // Get transport route by ID
   @Get(':id')
   @ApiOperation({ summary: 'Get transport route by ID' })
   @ApiParam({ name: 'id', example: 1 })
@@ -57,6 +63,8 @@ export class TransportController {
     return this.transportService.findOne(id);
   }
 
+  // POST /api/transport/compare
+  // Compare transport options between origin and destination
   @Post('compare')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Compare transport options between two locations' })

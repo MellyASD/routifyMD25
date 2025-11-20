@@ -11,6 +11,7 @@ import { tap, catchError } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { LogsService } from 'src/modules/logs/logs.service';
 
+// Interface for JWT payload
 interface JwtUserPayload {
   userId: number;
   email: string;
@@ -23,9 +24,11 @@ export class LoggingDbInterceptor implements NestInterceptor {
     void this.logsService;
   }
 
+  // Intercept all HTTP requests to log data to the database
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const start = Date.now();
 
+    // Helper to extract email from request
     const extractUserEmail = (
       req: Request & { user?: JwtUserPayload },
     ): string | null => {
@@ -38,6 +41,7 @@ export class LoggingDbInterceptor implements NestInterceptor {
       return null;
     };
 
+    // Helper to extract user ID from request
     const extractUserId = (
       req: Request & { user?: JwtUserPayload },
     ): number | null => {
@@ -50,13 +54,14 @@ export class LoggingDbInterceptor implements NestInterceptor {
         const req = http.getRequest<Request & { user?: JwtUserPayload }>();
         const res = http.getResponse<Response>();
 
+        // Extract request details
         const { method, url } = req;
         const status = res.statusCode;
-
         const duration = Date.now() - start;
         const userId = extractUserId(req);
         const userEmail = extractUserEmail(req);
 
+        // Save log to database
         void this.logsService
           .saveLog({
             method,
@@ -71,6 +76,7 @@ export class LoggingDbInterceptor implements NestInterceptor {
           });
       }),
 
+      // Handle errors and log them to DB
       catchError((err: unknown) => {
         const http = context.switchToHttp();
         const req = http.getRequest<Request & { user?: JwtUserPayload }>();
@@ -85,6 +91,7 @@ export class LoggingDbInterceptor implements NestInterceptor {
         const userId = extractUserId(req);
         const userEmail = extractUserEmail(req);
 
+        // Save error log to database
         void this.logsService
           .saveLog({
             method,

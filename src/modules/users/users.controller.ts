@@ -32,6 +32,8 @@ import {
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  // GET /api/users
+  // Get all active users
   @Get()
   @ApiOperation({ summary: 'Get all active users' })
   @ApiResponse({
@@ -47,6 +49,8 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  // GET /api/users/:id
+  // Get user by ID
   @Get(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Find a user by ID' })
@@ -67,6 +71,8 @@ export class UsersController {
     return this.usersService.findOne(id);
   }
 
+  // GET /api/users/search/:name
+  // Search users by name
   @Get('search/:name')
   @ApiOperation({ summary: 'Search users by name' })
   @Roles(UserRole.ADMIN)
@@ -86,6 +92,8 @@ export class UsersController {
     return this.usersService.findByName(name);
   }
 
+  // POST /api/users
+  // Create a new user
   @Post()
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Create a new user' })
@@ -105,6 +113,8 @@ export class UsersController {
     return this.usersService.create(body);
   }
 
+  // PUT /api/users/:id
+  // Update user by ID
   @Put(':id')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Update an existing user' })
@@ -129,6 +139,8 @@ export class UsersController {
     return this.usersService.update(id, body);
   }
 
+  // PATCH /api/users/:id/disable
+  // Disable a user account
   @Patch(':id/disable')
   @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Disable a user account' })

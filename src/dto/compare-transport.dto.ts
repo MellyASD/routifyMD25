@@ -13,6 +13,7 @@ export class CompareTransportDTO {
     message:
       'Origin must be a valid address or city Example "Bogota DC o Cra 24 #45"',
   })
+  // Address or city of origin
   origin: string;
 
   @ApiProperty({
@@ -25,5 +26,6 @@ export class CompareTransportDTO {
     message:
       'Destination must be a valid address or city, Example "Bogota DC o Cra 24 #45"',
   })
+  // Destination address or city
   destination: string;
 }

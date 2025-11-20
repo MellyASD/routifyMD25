@@ -32,6 +32,8 @@ import {
 export class ComparisonsController {
   constructor(private readonly comparisonsService: ComparisonsService) {}
 
+  // POST /api/comparisons
+  // Create a new comparison for the logged user
   @Post()
   @ApiOperation({
     summary: 'Create a new transport comparison',
@@ -57,6 +59,8 @@ export class ComparisonsController {
     );
   }
 
+  // GET /api/comparisons
+  // Get all comparisons
   @Get()
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -68,6 +72,8 @@ export class ComparisonsController {
     return this.comparisonsService.findAll();
   }
 
+  // GET /api/comparisons/my-comparisons
+  // Get comparisons created by the logged user
   @Get('my-comparisons')
   @ApiOperation({ summary: 'Get comparisons made by the logged' })
   @ApiResponse({ status: 200, description: 'User comparisons listed' })
@@ -76,6 +82,8 @@ export class ComparisonsController {
     return this.comparisonsService.findByUser(req.user.userId);
   }
 
+  // GET /api/comparisons/user/:userId
+  // Get comparisons by user ID
   @Get('user/:userId')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -89,6 +97,8 @@ export class ComparisonsController {
     return this.comparisonsService.findByUser(userId);
   }
 
+  // GET /api/comparisons/stats
+  // Get global comparison statistics
   @Get('stats')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -105,6 +115,8 @@ export class ComparisonsController {
     return this.comparisonsService.getStats();
   }
 
+  // GET /api/comparisons/my-stats
+  // Get statistics for the logged user
   @Get('my-stats')
   @ApiOperation({ summary: 'Get statistics of the logged' })
   @ApiResponse({
@@ -116,6 +128,8 @@ export class ComparisonsController {
     return this.comparisonsService.getStats(req.user.userId);
   }
 
+  // GET /api/comparisons/:id
+  // Get a comparison by its ID
   @Get(':id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)
@@ -128,6 +142,8 @@ export class ComparisonsController {
     return this.comparisonsService.findOne(id);
   }
 
+  // DELETE /api/comparisons/:id
+  // Delete comparison by ID
   @Delete(':id')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN)

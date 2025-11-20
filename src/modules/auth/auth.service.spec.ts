@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthService } from './auth.service';
 import { getRepositoryToken } from '@nestjs/typeorm';
@@ -39,14 +42,19 @@ describe('AuthService', () => {
     const hashed = await bcrypt.hash(dto.password, 10);
     const createdUser = { id: 'abc123', email: dto.email, password: hashed };
 
-    userRepo.findOne.mockResolvedValue(null); // email no existe
+    userRepo.findOne.mockResolvedValue(null);
     userRepo.create.mockReturnValue(createdUser);
     userRepo.save.mockResolvedValue(createdUser);
 
     const result = await service.register(dto);
 
-    expect(userRepo.findOne).toHaveBeenCalledWith({ where: { email: dto.email } });
-    expect(userRepo.create).toHaveBeenCalledWith({ ...dto, password: expect.any(String) });
+    expect(userRepo.findOne).toHaveBeenCalledWith({
+      where: { email: dto.email },
+    });
+    expect(userRepo.create).toHaveBeenCalledWith({
+      ...dto,
+      password: expect.any(String),
+    });
     expect(result).toEqual({
       message: 'User successfully registered',
       user: { id: 'abc123', email: 'test@example.com' },
@@ -57,10 +65,12 @@ describe('AuthService', () => {
     const dto = { email: 'test@example.com', password: '123456', name: 'Test' };
     const existingUser = { id: 'existing-id', email: dto.email };
 
-    userRepo.findOne.mockResolvedValue(existingUser); // email ya existe
+    userRepo.findOne.mockResolvedValue(existingUser);
 
     await expect(service.register(dto)).rejects.toThrow(BadRequestException);
-    await expect(service.register(dto)).rejects.toThrow('Email already exists.');
+    await expect(service.register(dto)).rejects.toThrow(
+      'Email already exists.',
+    );
   });
 
   it('should return access token on valid login', async () => {
@@ -84,9 +94,9 @@ describe('AuthService', () => {
   it('should throw InvalidCredentialsException if user not found', async () => {
     userRepo.findOne.mockResolvedValue(null);
 
-    await expect(service.login({ email: 'x@example.com', password: '123' }))
-      .rejects
-      .toThrow(InvalidCredentialsException);
+    await expect(
+      service.login({ email: 'x@example.com', password: '123' }),
+    ).rejects.toThrow(InvalidCredentialsException);
   });
 
   it('should throw InvalidCredentialsException if password is incorrect', async () => {
@@ -101,6 +111,8 @@ describe('AuthService', () => {
 
     userRepo.findOne.mockResolvedValue(user);
 
-    await expect(service.login(dto)).rejects.toThrow(InvalidCredentialsException);
+    await expect(service.login(dto)).rejects.toThrow(
+      InvalidCredentialsException,
+    );
   });
 });

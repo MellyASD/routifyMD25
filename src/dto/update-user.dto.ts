@@ -10,6 +10,7 @@ export class UpdateUserDTO {
   })
   @IsOptional()
   @IsBoolean()
+  // Account statement
   status?: boolean;
 
   @ApiProperty({
@@ -17,6 +18,7 @@ export class UpdateUserDTO {
     example: 'Juan',
     required: false,
   })
+  // Username
   @IsOptional()
   name?: string;
 
@@ -27,6 +29,7 @@ export class UpdateUserDTO {
   })
   @IsOptional()
   @IsEmail()
+  // User email address
   email?: string;
 
   @ApiProperty({
@@ -38,6 +41,7 @@ export class UpdateUserDTO {
   @Length(6, 10, {
     message: 'The password must be between 6 and 10 characters long',
   })
+  // User password
   password?: string;
 
   @ApiProperty({
@@ -46,5 +50,6 @@ export class UpdateUserDTO {
     required: false,
   })
   @IsOptional()
-  role: UserRole;
+  // User role
+  role?: UserRole;
 }
