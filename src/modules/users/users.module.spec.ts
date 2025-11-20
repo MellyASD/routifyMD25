@@ -13,7 +13,7 @@ describe('UsersModule', () => {
       imports: [UsersModule],
     })
       .overrideProvider(getRepositoryToken(User))
-      .useValue({}) // Mock repositorio de User
+      .useValue({})
       .compile();
   });
 

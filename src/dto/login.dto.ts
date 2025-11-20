@@ -7,6 +7,7 @@ export class LoginDTO {
     example: 'juan@example.com',
   })
   @IsEmail()
+  // User email
   email: string;
 
   @ApiProperty({
@@ -16,5 +17,6 @@ export class LoginDTO {
   @Length(6, 10, {
     message: 'The password must be between 6 and 10 characters long',
   })
+  // User password
   password: string;
 }

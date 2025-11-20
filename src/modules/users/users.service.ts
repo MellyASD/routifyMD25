@@ -1,17 +1,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from 'src/entities/user.entity';
 import { ILike, Repository } from 'typeorm';
 import { CreateUserDTO } from 'src/dto/create-user.dto';
 import { UpdateUserDTO } from 'src/dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
+import { UserNotFoundException } from 'src/common/exceptions/routify.exception';
 
 @Injectable()
 export class UsersService {
@@ -20,27 +17,31 @@ export class UsersService {
     private usersRepo: Repository<User>,
   ) {}
 
+  // Get all active users
   findAll(): Promise<User[]> {
     return this.usersRepo.find({ where: { status: true } });
   }
 
+  // Get user by ID
   async findOne(id: number): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
-    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
+    if (!user) throw new UserNotFoundException();
     return user;
   }
 
+  // Search users by name
   async findByName(name: string): Promise<User[]> {
     const users = await this.usersRepo.find({
       where: { name: ILike(`%${name}%`) },
     });
     if (users.length === 0) {
-      throw new NotFoundException(`No users found with name: ${name}`);
+      throw new UserNotFoundException();
     }
 
     return users;
   }
 
+  // Create a new user with hashed password
   async create(
     newUser: CreateUserDTO,
   ): Promise<{ message: string; user: User }> {
@@ -61,10 +62,13 @@ export class UsersService {
     return { message: 'User created successfully.', user: savedUser };
   }
 
+  // Update an existing user
   async update(
     id: number,
     updateUser: UpdateUserDTO,
   ): Promise<{ message: string; user: User }> {
+    const user = await this.findOne(id);
+
     const hasAtLeastOneField = Object.values(updateUser).some(
       (value) => value !== undefined && value !== null,
     );
@@ -74,9 +78,6 @@ export class UsersService {
         'You must submit at least one field to update',
       );
     }
-
-    const user = await this.findOne(id);
-    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
 
     if (updateUser.email && updateUser.email !== user.email) {
       const existingUser = await this.usersRepo.findOne({
@@ -105,9 +106,9 @@ export class UsersService {
     return { message: 'User updated successfully.', user: updatedUser };
   }
 
+  // Disable a user account
   async disable(id: number): Promise<{ message: string }> {
     const user = await this.findOne(id);
-    if (!user) throw new NotFoundException(`User with ID ${id} not found.`);
 
     if (!user.status) {
       throw new BadRequestException('User is already disabled.');

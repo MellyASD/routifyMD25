@@ -13,6 +13,7 @@ export class LogsService {
     private readonly userRepo: Repository<User>,
   ) {}
 
+  // Find user ID by email
   async findUserIdByEmail(email: string): Promise<number | null> {
     if (!email) return null;
 
@@ -24,6 +25,7 @@ export class LogsService {
     return user?.id ?? null;
   }
 
+  // Save a log entry to the database
   async saveLog(data: Partial<LogEntry>) {
     let userId = data.userId ?? null;
 
@@ -35,6 +37,7 @@ export class LogsService {
       }
     }
 
+    // Create new log entry
     const ent = this.repo.create({
       method: data.method,
       url: data.url,
@@ -45,6 +48,7 @@ export class LogsService {
       userEmail: userId ? (data.userEmail ?? null) : null,
     });
 
+    // Save log entry
     return this.repo.save(ent);
   }
 }
